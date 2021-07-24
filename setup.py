@@ -2,13 +2,13 @@ from distutils.core import setup
 setup(
   name = 'harbinger',
   packages = ['harbinger'],
-  version = '0.1',
+  version = '0.3',
   license='MIT',
   description = 'A python tool that simplifies automating tasks across multiple servers.',
   author = 'protosam',
   author_email = 'sam.igknighted@gmail.com',
   url = 'https://github.com/protosam/harbinger',
-  download_url = 'https://github.com/protosam/harbinger/archive/refs/tags/v0.1.zip',
+  download_url = 'https://github.com/protosam/harbinger/archive/refs/tags/v0.3.zip',
   keywords = ['ssh', 'easy', 'automation', 'administration', 'orchestration', 'devops', 'linux', 'servers', 'cloud', 'infrastructure'],
   install_requires=[
           'jinja2',

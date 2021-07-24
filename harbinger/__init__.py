@@ -18,8 +18,8 @@ class Client():
     facts = {} # shared facts
     hosts = {}
     _queue = queue.queued()
-    _skip = []
-    _select = []
+    _skip = None
+    _select = None
 
     # connect to an ssh server
     # host[options] become kwargs for paramiko.client.SSHClient.connect
@@ -169,10 +169,10 @@ class Client():
 
     # check filters and return true if the task can be ran on this host
     def allowed_by_filters(self, address):
-        if address in self._skip:
+        if self._skip is not None and address in self._skip:
             return False
         
-        if len(self._select) > 0 and address not in self._select:
+        if len(self._select) is not None and address not in self._select:
             return False
         
         return True
@@ -186,6 +186,9 @@ class Client():
 
     # filter to skip hosts when cmd runs again
     def skip(self, hosts):
+        if self._skip is None:
+            self._skip = []
+
         if isinstance(hosts, list):
             self._skip.extend(hosts)
         elif isinstance(hosts, str):
@@ -196,6 +199,9 @@ class Client():
 
     # filter to select what hosts cmd runs again
     def select(self, hosts):
+        if self._select is None:
+            self._select = []
+
         if isinstance(hosts, list):
             self._select.extend(hosts)
         elif isinstance(hosts, str):
@@ -224,20 +230,26 @@ class Client():
 
     # filter to skip hosts by group when cmd runs again
     def skip_groups(self, groups):
+        if self._skip is None:
+            self._skip = []
+
         hosts = self.find_by_group(groups)
         self._skip.extend(hosts)
         return self
 
     # filter to select hosts by group when cmd runs again
     def select_groups(self, groups):
+        if self._select is None:
+            self._select = []
+
         hosts = self.find_by_group(groups)
         self._select.extend(hosts)
         return self
 
     # clears all filters
     def clear_filters(self):
-        self._skip = []
-        self._select = []
+        self._skip = None
+        self._select = None
 
     # utility function that just returns all the hosts
     def get_hosts(self):

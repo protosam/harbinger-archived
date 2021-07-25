@@ -21,6 +21,9 @@ class Client():
     _skip = None
     _select = None
 
+    def __init__(self):
+        print("USING DEV")
+
     # connect to an ssh server
     # host[options] become kwargs for paramiko.client.SSHClient.connect
     # see http://docs.paramiko.org/en/stable/api/client.html#paramiko.client.SSHClient.connect
@@ -85,6 +88,7 @@ class Client():
         _status = _stdout.channel.recv_exit_status()
         self._queue.append({
                 'host': host,
+                'command': parsed_cmd,
                 'status': _status,
                 'stdout': _stdout.read().decode('utf-8'),
                 'stderr': _stderr.read().decode('utf-8')
@@ -92,14 +96,17 @@ class Client():
         host['ssh_lock'].release()
 
     # run commands against connected servers
-    def cmd(self, cmd_template, clear_filters=True):
+    def cmd(self, cmd_template, clear_filters=True, threaded=True):
         threads = []
         
         for address, host in self.hosts.items():
             if self.allowed_by_filters(address):
-                t = threading.Thread(target=self.run_cmd_on_host, args=[host, cmd_template])
-                t.start()
-                threads.append(t)
+                if threaded:
+                    t = threading.Thread(target=self.run_cmd_on_host, args=[host, cmd_template])
+                    t.start()
+                    threads.append(t)
+                else:
+                    self.run_cmd_on_host(host, cmd_template)
 
         for x in threads:
             x.join()
@@ -118,14 +125,17 @@ class Client():
         host['ssh_lock'].release()
 
     # run commands against connected servers
-    def get(self, remote_src, local_dest, clear_filters=True):
+    def get(self, remote_src, local_dest, clear_filters=True, threaded=True):
         threads = []
         
         for address, host in self.hosts.items():
             if self.allowed_by_filters(address):
-                t = threading.Thread(target=self.download_from_host, args=[host, remote_src, local_dest])
-                t.start()
-                threads.append(t)
+                if threaded:
+                    t = threading.Thread(target=self.download_from_host, args=[host, remote_src, local_dest])
+                    t.start()
+                    threads.append(t)
+                else:
+                    self.download_from_host(host, remote_src, local_dest)
 
         for x in threads:
             x.join()
@@ -151,14 +161,17 @@ class Client():
         host['ssh_lock'].release()
 
     # run upload_to_host against connected servers
-    def put(self, local_src, remote_dest, parse_tpl=False, clear_filters=True):
+    def put(self, local_src, remote_dest, parse_tpl=False, clear_filters=True, threaded=True):
         threads = []
         
         for address, host in self.hosts.items():
             if self.allowed_by_filters(address):
-                t = threading.Thread(target=self.upload_to_host, args=[host, local_src, remote_dest, parse_tpl])
-                t.start()
-                threads.append(t)
+                if threaded:
+                    t = threading.Thread(target=self.upload_to_host, args=[host, local_src, remote_dest, parse_tpl])
+                    t.start()
+                    threads.append(t)
+                else:
+                    self.upload_to_host(host, local_src, remote_dest, parse_tpl)
 
         for x in threads:
             x.join()
@@ -251,6 +264,15 @@ class Client():
         self._skip = None
         self._select = None
 
-    # utility function that just returns all the hosts
-    def get_hosts(self):
-        return self.hosts
+    # utility function to get list of filtered hosts
+    def get_hosts(self, clear_filters=True):
+        hosts = []
+
+        for address, host in self.hosts.items():
+            if self.allowed_by_filters(address):
+                hosts.append(host)
+
+        if clear_filters:
+            self.clear_filters()
+        
+        return hosts

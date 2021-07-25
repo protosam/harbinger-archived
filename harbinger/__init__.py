@@ -22,7 +22,7 @@ class Client():
     _select = None
 
     def __init__(self):
-        print("USING DEV")
+        pass
 
     # connect to an ssh server
     # host[options] become kwargs for paramiko.client.SSHClient.connect

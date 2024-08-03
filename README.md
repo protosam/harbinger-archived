@@ -1,11 +1,6 @@
 # Harbinger
 A python tool that simplifies automating tasks across multiple servers.
 
-## Installation
-```text
-pip install harbinger
-```
-
 ## Example
 ```python
 #!/usr/bin/env python3
